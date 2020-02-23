@@ -7,7 +7,7 @@ This file creates your application.
 
 from app import app
 from flask import render_template, request, redirect, url_for, flash
-
+from .forms import ContactForm
 
 ###
 # Routing for your application.
@@ -57,6 +57,30 @@ def add_header(response):
     response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
     response.headers['Cache-Control'] = 'public, max-age=0'
     return response
+
+
+
+@app.route('/contact', methods = ['GET', 'POST'])
+def contact():
+    """Render the website's contact page."""
+    contactPage = ContactForm()
+
+    if request.method == 'POST':
+        if contactPage.validate_on_submit():
+            name = contactPage.name.data
+            email = contactPage.email.data
+            subject = contactPage.subject.data
+            message = contactPage.message.data
+
+            msg = Message(subject, sender=(name, email),recipients=["402feeca2d-cb02b1@inbox.mailtrap.io"])
+            msg.body = message
+            mail.send(msg)
+
+            flash('Your email was sent successfully!', 'success')
+            return redirect(url_for('home'))
+        flash_errors(contactPage)
+    return render_template('contact.html', form=contactPage) 
+
 
 
 @app.errorhandler(404)
